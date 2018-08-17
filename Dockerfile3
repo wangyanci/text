@@ -1,0 +1,20 @@
+FROM node:8-alpine as builder
+COPY package.json package-lock.json ./ 
+RUN npm set progress=false && npm config set depth 0 && npm cache clean --force 
+RUN npm i && mkdir /ng-app && cp -R ./node_modules ./ng-app 
+WORKDIR /ng-app 
+COPY . . 
+
+## Build 
+
+RUN $(npm bin)/ng build --prod --build-optimizer 
+
+### 阶段2 部署到nginx 
+FROM nginx:1.13.3-alpine 
+
+## 删除默认的html 
+RUN rm -rf /usr/share/nginx/html/* 
+
+## 把build阶段的输出dist里的内容，copy到nginx的html目录 
+COPY --from=builder /ng-app/dist/demo /usr/share/nginx/html 
+CMD ["nginx", "-g", "daemon off;"]
