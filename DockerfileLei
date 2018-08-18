@@ -1,12 +1,18 @@
-FROM muninn/glide:alpine AS build-env
-ADD . /go/src/app
-WORKDIR /go/src/app
-RUN glide install
-RUN go build -v -o /go/src/app/app-server
+from debian as build-essential
+arg APT_MIRROR
+run apt-get update
+run apt-get install -y make gcc
+workdir /src
 
-FROM alpine
-RUN apk add -U tzdata
-RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai  /etc/localtime
-COPY --from=build-env /go/src/app/app-server /usr/local/bin/app-server
-EXPOSE 80
-CMD ["app-server"]
+from build-essential as foo
+copy src1 .
+run make
+
+from build-essential as bar
+copy src2 .
+run make
+
+from alpine
+copy --from=foo bin1 .
+copy --from=bar bin2 .
+cmd ...
