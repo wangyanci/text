@@ -1,12 +1,14 @@
-FROM alpine AS build-env
-ADD . /go/src/app
-WORKDIR /go/src/app
-RUN glide install
-RUN go build -v -o /go/src/app/app-server
+FROM golang:alpine as builder
 
-FROM alpine
-RUN apk add -U tzdata
-RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai  /etc/localtime
-COPY --from=build-env /go/src/app/app-server /usr/local/bin/app-server
-EXPOSE 80
-CMD ["app-server"]
+WORKDIR /go/src
+COPY httpserver.go .
+
+RUN go build -o myhttpserver ./httpserver.go
+
+From alpine:latest
+
+WORKDIR /root/
+COPY --from=builder /go/src/myhttpserver .
+RUN chmod +x /root/myhttpserver
+
+ENTRYPOINT ["/root/myhttpserver"]
