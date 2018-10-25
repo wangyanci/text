@@ -1,12 +1,3 @@
-FROM golang:1.7.3
-WORKDIR ./
-RUN go get -d -v github.com/go-sql-driver/mysql
-
-COPY app.go .
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app .
- 
-FROM alpine:latest  
-RUN apk --no-cache add ca-certificates
-WORKDIR ./
-COPY --from=0 ./app .
-CMD ["./app"]  
+FROM ubuntu:14.04
+MAINTAINER Adam Gao “solonot@163.com”
+RUN ls -al
